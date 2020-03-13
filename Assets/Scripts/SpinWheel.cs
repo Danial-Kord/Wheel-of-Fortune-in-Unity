@@ -1,6 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 public class SpinWheel : MonoBehaviour
 {
@@ -11,10 +14,15 @@ public class SpinWheel : MonoBehaviour
 	private float anglePerItem;	
 	private int randomTime;
 	private int itemNumber;
-	
-	void Start(){
+	private GameObject[] colliders;
+	private GameObject arrow;
+	[SerializeField] private Canvas winner;
+	void Start()
+	{
+		arrow = GameObject.FindGameObjectWithTag("Arrow");
 		spinning = false;
-		anglePerItem = 360/prize.Count;		
+		anglePerItem = 360/prize.Count;
+		colliders = GameObject.FindGameObjectsWithTag("Collider");
 	}
 	
 	void  Update ()
@@ -50,7 +58,26 @@ public class SpinWheel : MonoBehaviour
 		
 		transform.eulerAngles = new Vector3 (0.0f, 0.0f, maxAngle + startAngle);
 		spinning = false;
-			
-		Debug.Log ("Prize: " + prize [itemNumber]);//use prize[itemNumnber] as per requirement
+
+		Vector3 lastPos = arrow.transform.position;
+		String prize = "pooch";
+
+		if(!(lastPos.y < colliders[colliders.Length-1].transform.position.y && lastPos.y > colliders[0].transform.position.y))
+			for (int i = 1; i < colliders.Length; i++)
+			{
+
+				if (lastPos.y < colliders[i - 1].transform.position.y && lastPos.y > colliders[i].transform.position.y)
+				{
+					prize = colliders[i-1].GetComponentInChildren<Text>().text;
+					break;
+				}
+			}
+		else
+		{
+			prize = colliders[colliders.Length-1].GetComponentInChildren<Text>().text;
+		}
+		winner.gameObject.SetActive(true);
+		winner.GetComponentInChildren<Text>().text = prize;
+		Debug.Log ("Prize: " + prize);//use prize[itemNumnber] as per requirement
 	}	
 }
