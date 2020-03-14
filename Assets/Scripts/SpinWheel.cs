@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -16,13 +17,15 @@ public class SpinWheel : MonoBehaviour
 	private int itemNumber;
 	private GameObject[] colliders;
 	private GameObject arrow;
-	[SerializeField] private Canvas winner;
+	[SerializeField] private GameObject winner;
+	
 	void Start()
 	{
 		arrow = GameObject.FindGameObjectWithTag("Arrow");
 		spinning = false;
 		anglePerItem = 360/prize.Count;
 		colliders = GameObject.FindGameObjectsWithTag("Collider");
+
 	}
 	
 	void  Update ()
@@ -36,9 +39,19 @@ public class SpinWheel : MonoBehaviour
 			StartCoroutine (SpinTheWheel (5 * randomTime, maxAngle));
 		}
 	}
-	
+
+
+	public void spin()
+	{
+		randomTime = Random.Range (3, 6);
+		itemNumber = Random.Range (0, prize.Count);
+		float maxAngle = 360 * (randomTime*5) + (itemNumber * anglePerItem);
+			
+		StartCoroutine (SpinTheWheel (5 * randomTime, maxAngle));
+	}
 	IEnumerator SpinTheWheel (float time, float maxAngle)
 	{
+	
 		spinning = true;
 		
 		float timer = 0.0f;		
@@ -49,24 +62,31 @@ public class SpinWheel : MonoBehaviour
 		Debug.Log ("Animation Curve No. : " + animationCurveNumber);
 		
 		while (timer < time) {
+			
 		//to calculate rotation
-			float angle = maxAngle * animationCurves [animationCurveNumber].Evaluate (timer / time) ;
+		float angle = maxAngle * animationCurves[animationCurveNumber].Evaluate(1 - (timer / time)) + anglePerItem *
+		              itemNumber;
 			transform.eulerAngles = new Vector3 (0.0f, 0.0f, angle + startAngle);
+			//transform.Rotate(angle * Vector3.forward);
+
+
+
+			//transform.eulerAngles = Vector3.Slerp(transform.eulerAngles*startAngle,transform.eulerAngles*maxAngle,timer/time);
 			timer += Time.deltaTime;
 			yield return 0;
 		}
 		
-		transform.eulerAngles = new Vector3 (0.0f, 0.0f, maxAngle + startAngle);
+		//transform.eulerAngles = new Vector3 (0.0f, 0.0f, maxAngle + startAngle);
 		spinning = false;
 
 		Vector3 lastPos = arrow.transform.position;
 		String prize = "pooch";
 
-		if(!(lastPos.y < colliders[colliders.Length-1].transform.position.y && lastPos.y > colliders[0].transform.position.y))
+		if(!(lastPos.x > colliders[colliders.Length-1].transform.position.x && lastPos.x < colliders[0].transform.position.x))
 			for (int i = 1; i < colliders.Length; i++)
 			{
 
-				if (lastPos.y < colliders[i - 1].transform.position.y && lastPos.y > colliders[i].transform.position.y)
+				if (lastPos.x > colliders[i - 1].transform.position.x && lastPos.x < colliders[i].transform.position.x)
 				{
 					prize = colliders[i-1].GetComponentInChildren<Text>().text;
 					break;
@@ -79,5 +99,8 @@ public class SpinWheel : MonoBehaviour
 		winner.gameObject.SetActive(true);
 		winner.GetComponentInChildren<Text>().text = prize;
 		Debug.Log ("Prize: " + prize);//use prize[itemNumnber] as per requirement
+		
+		yield return new WaitForSeconds(3);
+		SceneManager.LoadScene(0);
 	}	
 }
