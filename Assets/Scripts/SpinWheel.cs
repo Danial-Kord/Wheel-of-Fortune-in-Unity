@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -19,13 +20,38 @@ public class SpinWheel : MonoBehaviour
 	private GameObject arrow;
 	[SerializeField] private GameObject winner;
 	private AudioManager AudioManager;
+	private GameManager  gameManager;
 	void Start()
 	{
-		AudioManager = GameObject.FindWithTag("GameManager").GetComponent<AudioManager>();
+		AudioManager = GameManager.instance.GetComponent<AudioManager>();
+		gameManager = GameManager.instance.GetComponent<GameManager>();
 		arrow = GameObject.FindGameObjectWithTag("Arrow");
 		spinning = false;
 		anglePerItem = 360/prize.Count;
 		colliders = GameObject.FindGameObjectsWithTag("Collider");
+
+		try
+		{
+			string path = Application.dataPath+"/test.txt";
+			StreamReader streamReader = new StreamReader(path);
+			int i = 0;
+			while (i < colliders.Length)
+			{
+				String input = streamReader.ReadLine();
+				if (input == null)
+				{
+					break;
+				}
+
+				colliders[i].GetComponentInChildren<Text>().text = input;
+				i++;
+			}
+		}
+		catch (Exception e)
+		{
+				Debug.Log("oops");
+		}
+
 
 	}
 	
@@ -111,11 +137,15 @@ public class SpinWheel : MonoBehaviour
 		winner.gameObject.SetActive(true);
 		winner.GetComponentInChildren<Text>().text = prize;
 		Debug.Log ("Prize: " + prize);//use prize[itemNumnber] as per requirement
+		
 		AudioManager.playWinner();
+		gameManager.playVictory();
+		
 		yield return new WaitForSeconds(AudioManager.winner.clip.length);
 
 		AudioManager.waiting.pitch = 1;
 		SceneManager.LoadScene(0);
 		spinning = false;
+		gameManager.playing = false;
 	}	
 }
