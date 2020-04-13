@@ -1,10 +1,5 @@
-ali
-naghi
-taghi
-goooz
-chos
-kir
-koon
-an
-goh
-joooon
+naem1
+name2
+.
+.
+.
